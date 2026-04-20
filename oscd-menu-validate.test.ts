@@ -9,9 +9,9 @@ import {
   invalid2003doc,
   valid2003doc,
   templateIssuesDoc,
-} from './scl-validating.testfiles.js';
+} from './oscd-menu-validate.testfiles.js';
 
-import SclValidatingPlugin from './scl-validating.js';
+import OscdMenuValidate from './oscd-menu-validate.js';
 
 const factor = window.process && process.env.CI ? 4 : 2;
 function timeout(ms: number) {
@@ -24,8 +24,8 @@ mocha.timeout(2000 * factor);
 setViewport({ width: 600, height: 800 });
 
 describe('Validating menu plugin', () => {
-  if (customElements.get('scl-validating') === undefined)
-    customElements.define('scl-validating', SclValidatingPlugin);
+  if (customElements.get('oscd-menu-validate') === undefined)
+    customElements.define('oscd-menu-validate', OscdMenuValidate);
 
   let div: HTMLElement;
   beforeEach(() => {
@@ -41,9 +41,9 @@ describe('Validating menu plugin', () => {
   });
 
   describe('with missing SCL document', () => {
-    let editor: SclValidatingPlugin;
+    let editor: OscdMenuValidate;
     beforeEach(async () => {
-      editor = await fixture(html`<scl-validating></scl-validating>`);
+      editor = await fixture(html`<oscd-menu-validate></oscd-menu-validate>`);
 
       document.body.prepend(editor);
     });
@@ -62,7 +62,7 @@ describe('Validating menu plugin', () => {
   });
 
   describe('with loaded doc but not run validation', () => {
-    let editor: SclValidatingPlugin;
+    let editor: OscdMenuValidate;
     beforeEach(async () => {
       const doc = new DOMParser().parseFromString(
         invalid2003doc,
@@ -70,7 +70,7 @@ describe('Validating menu plugin', () => {
       );
 
       editor = await fixture(
-        html`<scl-validating .doc=${doc} docName=""></scl-validating>`
+        html`<oscd-menu-validate .doc=${doc} docName=""></oscd-menu-validate>`
       );
       document.body.prepend(editor);
     });
@@ -95,13 +95,13 @@ describe('Validating menu plugin', () => {
     );
 
     describe('with manually run template validation', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${doc}
             docName="InvalidTemplates"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -122,13 +122,13 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with hidden template issues', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${doc}
             docName="InvalidTemplates"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -151,10 +151,10 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with enabled auto validate option', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         editor = await fixture(
-          html`<scl-validating .doc=${doc}></scl-validating>`
+          html`<oscd-menu-validate .doc=${doc}></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -188,13 +188,13 @@ describe('Validating menu plugin', () => {
     );
 
     describe('defaults to auto validate', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${doc}
             docName="invalid2003"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -213,10 +213,10 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with manually run schema validation', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         editor = await fixture(
-          html`<scl-validating .doc=${doc}></scl-validating>`
+          html`<oscd-menu-validate .doc=${doc}></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -237,13 +237,13 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with hidden schema issue', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${doc}
             docName="invalidDoc"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -264,10 +264,10 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with disabled auto validate option', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         editor = await fixture(
-          html`<scl-validating .doc=${doc}></scl-validating>`
+          html`<oscd-menu-validate .doc=${doc}></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -293,7 +293,7 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with invalid 2003 (schema 1.7) project loaded', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         const invalid2003 = new DOMParser().parseFromString(
           invalid2003doc,
@@ -301,10 +301,10 @@ describe('Validating menu plugin', () => {
         );
 
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${invalid2003}
             docName="invalid2003"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -323,7 +323,7 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with valid 2003 (schema 1.7) project loaded', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         const valid2003 = new DOMParser().parseFromString(
           valid2003doc,
@@ -331,10 +331,10 @@ describe('Validating menu plugin', () => {
         );
 
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${valid2003}
             docName="valid2003"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -353,7 +353,7 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with invalid Ed2 (2007B) project loaded', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         const invalid2003 = new DOMParser().parseFromString(
           invalid2003doc,
@@ -361,10 +361,10 @@ describe('Validating menu plugin', () => {
         );
 
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${invalid2003}
             docName="invalid2003"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -383,7 +383,7 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with valid Ed2 (2007B) project loaded', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         const valid2003 = new DOMParser().parseFromString(
           valid2003doc,
@@ -391,10 +391,10 @@ describe('Validating menu plugin', () => {
         );
 
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${valid2003}
             docName="valid2003"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -413,7 +413,7 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with invalid Ed2.1 (2007B4) project loaded', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         const invalid2003 = new DOMParser().parseFromString(
           invalid2003doc,
@@ -421,10 +421,10 @@ describe('Validating menu plugin', () => {
         );
 
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${invalid2003}
             docName="invalid2003"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });
@@ -443,7 +443,7 @@ describe('Validating menu plugin', () => {
     });
 
     describe('with valid Ed2.1 (2007B4) project loaded', () => {
-      let editor: SclValidatingPlugin;
+      let editor: OscdMenuValidate;
       beforeEach(async () => {
         const valid2003 = new DOMParser().parseFromString(
           valid2003doc,
@@ -451,10 +451,10 @@ describe('Validating menu plugin', () => {
         );
 
         editor = await fixture(
-          html`<scl-validating
+          html`<oscd-menu-validate
             .doc=${valid2003}
             docName="valid2003"
-          ></scl-validating>`
+          ></oscd-menu-validate>`
         );
         document.body.prepend(editor);
       });

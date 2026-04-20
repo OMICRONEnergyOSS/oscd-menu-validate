@@ -20,7 +20,7 @@ import { Issue } from '@openenergytools/xml-schema-validator';
 import { validateSchema } from './schema/validateSchema.js';
 
 /** An editor [[`plugin`]] to configure validators and display their issue centrally */
-export default class SclValidatingPlugin extends LitElement {
+export default class OscdMenuValidate extends LitElement {
   /** The document being edited as provided to plugins by [[`OpenSCD`]]. */
   @property({ attribute: false })
   doc?: XMLDocument;
@@ -141,12 +141,13 @@ export default class SclValidatingPlugin extends LitElement {
     return [
       html`<li divider padded role="separator"></li>`,
       ...issues.map(
-        issue => html` <abbr title="${`${issue.title}\n${issue.message}`}"
-          ><mwc-list-item ?twoline=${!!issue.message}>
-            <span> ${issue.title}</span>
-            <span slot="secondary">${issue.message}</span>
-          </mwc-list-item></abbr
-        >`
+        issue =>
+          html` <abbr title="${`${issue.title}\n${issue.message}`}"
+            ><mwc-list-item ?twoline=${!!issue.message}>
+              <span> ${issue.title}</span>
+              <span slot="secondary">${issue.message}</span>
+            </mwc-list-item></abbr
+          >`
       ),
     ];
   }

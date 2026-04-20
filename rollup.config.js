@@ -2,7 +2,7 @@ import nodeResolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
 
 export default {
-  input: './scl-validating.ts',
+  input: './oscd-menu-validate.ts',
   output: {
     sourcemap: true,        // Add source map to build output
     format:'es',            // ES module type export

@@ -1,4 +1,4 @@
-# \<scl-validating>
+# \<oscd-menu-validate>
 
 ## What is this?
 
