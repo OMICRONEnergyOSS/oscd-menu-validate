@@ -6,6 +6,7 @@ import '@material/mwc-button';
 import '@material/mwc-dialog';
 import '@material/mwc-formfield';
 import '@material/mwc-icon';
+import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
 import '@material/mwc-list';
 import '@material/mwc-snackbar';
@@ -32,6 +33,7 @@ export default class OscdMenuValidate extends LitElement {
   set docName(docName: string) {
     if (docName === '') return;
 
+    this._docName = docName;
     this.resetValidation();
     this.autoValidate();
   }
@@ -64,6 +66,9 @@ export default class OscdMenuValidate extends LitElement {
   /** Whether template validator shall run after each change to the doc */
   @state() autoValidateTemplate = false;
 
+  /** Tracks which issue indices currently show a "copied" checkmark */
+  @state() private copiedSet: Set<string> = new Set();
+
   @query('.content.dialog') dialog!: Dialog;
 
   @query('.expand.template') expandTemplate!: IconButtonToggle;
@@ -91,7 +96,7 @@ export default class OscdMenuValidate extends LitElement {
     await this.requestUpdate('schemaIssues');
 
     const result = await validateSchema(this.doc!, this.docName);
-    this.schemaIssues = result || [{ title: 'Invalid Schema!' }];
+    this.schemaIssues = result;
     this.waitForSchemaRun = false;
 
     if (this.schemaIssues.length) {
@@ -134,20 +139,45 @@ export default class OscdMenuValidate extends LitElement {
     this.waitForTemplateRun = true;
   }
 
-  // eslint-disable-next-line class-methods-use-this
-  private renderValidatorsIssues(issues: Issue[]): TemplateResult[] {
+  private async copyIssue(key: string, issue: Issue): Promise<void> {
+    const text = issue.message
+      ? `${issue.title}\n${issue.message}`
+      : issue.title;
+    await navigator.clipboard.writeText(text);
+    this.copiedSet.add(key);
+    this.requestUpdate();
+    setTimeout(() => {
+      this.copiedSet.delete(key);
+      this.requestUpdate();
+    }, 2000);
+  }
+
+  private renderValidatorsIssues(
+    issues: Issue[],
+    prefix: string
+  ): TemplateResult[] {
     if (issues.length === 0)
       return [html`<li divider padded role="separator"></li>`];
     return [
       html`<li divider padded role="separator"></li>`,
       ...issues.map(
-        issue =>
-          html` <abbr title="${`${issue.title}\n${issue.message}`}"
-            ><mwc-list-item ?twoline=${!!issue.message}>
+        (issue, i) =>
+          html` <abbr title="${`${issue.title}\n${issue.message}`}">
+            <mwc-list-item ?twoline=${!!issue.message} hasMeta>
               <span> ${issue.title}</span>
               <span slot="secondary">${issue.message}</span>
-            </mwc-list-item></abbr
-          >`
+              <mwc-icon-button
+                class="copy-btn"
+                slot="meta"
+                icon="${this.copiedSet.has(`${prefix}-${i}`)
+                  ? 'check_circle'
+                  : 'content_copy'}"
+                @click=${(e: Event) => {
+                  e.stopPropagation();
+                  this.copyIssue(`${prefix}-${i}`, issue);
+                }}
+              ></mwc-icon-button> </mwc-list-item
+          ></abbr>`
       ),
     ];
   }
@@ -199,7 +229,10 @@ export default class OscdMenuValidate extends LitElement {
             <li divider padded role="separator"></li>
           </mwc-list>`
         : html`<mwc-list id="content" wrapFocus
-            >${this.renderValidatorsIssues(this.templateIssues)}</mwc-list
+            >${this.renderValidatorsIssues(
+              this.templateIssues,
+              'tpl'
+            )}</mwc-list
           >`}`;
   }
 
@@ -250,7 +283,7 @@ export default class OscdMenuValidate extends LitElement {
             <li divider padded role="separator"></li>
           </mwc-list>`
         : html`<mwc-list id="content" wrapFocus
-            >${this.renderValidatorsIssues(this.schemaIssues)}</mwc-list
+            >${this.renderValidatorsIssues(this.schemaIssues, 'sch')}</mwc-list
           >`}`;
   }
 
@@ -259,7 +292,7 @@ export default class OscdMenuValidate extends LitElement {
       return html`<mwc-dialog class="content dialog"
         ><div>No SCL file loaded, yet!</div>
         <mwc-button
-          label="Cancel"
+          label="Close"
           slot="secondaryAction"
           dialogAction="close"
         ></mwc-button>
@@ -268,7 +301,7 @@ export default class OscdMenuValidate extends LitElement {
     return html`<mwc-dialog class="content dialog">
         ${this.renderSchemaValidator()}${this.renderTemplateValidator()}
         <mwc-button
-          label="Cancel"
+          label="Close"
           slot="secondaryAction"
           dialogAction="close"
         ></mwc-button>
@@ -293,6 +326,15 @@ export default class OscdMenuValidate extends LitElement {
     abbr {
       text-decoration: none;
       border-bottom: none;
+    }
+
+    .copy-btn {
+      --mdc-icon-size: 18px;
+      --mdc-icon-button-size: 32px;
+    }
+
+    .copy-btn[icon='check_circle'] {
+      color: #4caf50;
     }
   `;
 }

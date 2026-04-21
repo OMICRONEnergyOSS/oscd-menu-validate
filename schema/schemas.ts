@@ -9277,11 +9277,20 @@ const versionToSchema: Partial<Record<string, SupportedVersion>> = {
   '2007B3': '2007B4',
   '2007B4': '2007B4',
 };
+
+export function getSchemaKey(
+  version: string,
+  revision: string,
+  release: string
+): SupportedVersion | null {
+  return versionToSchema[version + revision + release] ?? null;
+}
+
 export function getSchema(
   version: string,
   revision: string,
   release: string
-): string {
-  const schemaVersion = versionToSchema[version + revision + release];
-  return schemas[schemaVersion ?? '2007B'];
+): string | null {
+  const schemaVersion = getSchemaKey(version, revision, release);
+  return schemaVersion ? schemas[schemaVersion] : null;
 }

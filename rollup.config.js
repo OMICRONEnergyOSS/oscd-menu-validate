@@ -1,7 +1,10 @@
 import nodeResolve from '@rollup/plugin-node-resolve';
 import typescript from '@rollup/plugin-typescript';
+import { rollupPluginHTML as html } from '@web/rollup-plugin-html';
+import { importMetaAssets } from '@web/rollup-plugin-import-meta-assets';
+import copy from 'rollup-plugin-copy';
 
-export default {
+export default [{
   input: './oscd-menu-validate.ts',
   output: {
     sourcemap: true,        // Add source map to build output
@@ -14,5 +17,33 @@ export default {
   plugins: [
     nodeResolve(),
     typescript(),
+    importMetaAssets(),
    ],
-};
+},  {
+    input: 'demo/index.html',
+    plugins: [
+      html({
+        input: 'demo/index.html',
+        minify: true,
+      }),
+      /** Resolve bare module imports */
+      nodeResolve(),
+
+      /** Bundle assets references via import.meta.url */
+      importMetaAssets(),
+      copy({
+        targets: [
+          { src: 'demo/sample.scd', dest: 'dist/demo' },
+          { src: 'demo/*.js', dest: 'dist/demo' },
+          // Add more patterns if you have more assets
+        ],
+        verbose: true,
+        flatten: false,
+      }),
+    ],
+    output: {
+      dir: 'dist/demo',
+      format: 'es',
+      sourcemap: true,
+    },
+  },];
