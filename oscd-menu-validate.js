@@ -7627,7 +7627,7 @@ async function validate(xml, xsd) {
         // Avoid init same XSD multiple times
         if (validators[xsdName])
             return validators[xsdName];
-        const worker = new Worker(new URL(new URL('assets/worker-2cd36d06.js', import.meta.url).href));
+        const worker = new Worker(new URL("./xmlvalidate/worker.js", import.meta.url));
         async function validate(xml, xmlName, results) {
             return new Promise((resolve) => {
                 worker.addEventListener("message", (e) => {
