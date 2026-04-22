@@ -11,9 +11,10 @@
   },
   "scripts": {
     "analyze": "cem analyze --litelement",
-    "start": "npm run build && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
+    "start": "npm run build && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds --node-resolve\"",
+    "start:bundle": "npm run bundle && concurrently -k -r \"rollup -c rollup.config.js --watch\" \"wds\"",
     "build": "rimraf dist && tsc",
-    "bundle": "rimraf dist && rollup -c rollup.config.js && cp -R node_modules/@openenergytools/xml-schema-validator/dist/xmlvalidate dist/xmlvalidate && cp -R node_modules/@openenergytools/scl-template-validator/dist/nsd dist/nsd",
+    "bundle": "rimraf dist && rollup -c rollup.config.js",
     "deploy": "npm run bundle && gh-pages --dist 'dist'",
     "pages": "gh-pages --dist 'dist'",
     "prepublish": "tsc && npm run analyze -- --exclude dist",
