@@ -73,6 +73,10 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
 
   groups: [
     {
+      name: 'unit',
+      files: 'dist/**/*.spec.js',
+    },
+    {
       name: 'visual',
       files: 'dist/**/*.test.js',
       testRunnerHtml: testFramework => `
