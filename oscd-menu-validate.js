@@ -7574,7 +7574,7 @@ const tagValidator = {
     BDA: dAValidator,
 };
 
-async function* validate$1(doc) {
+async function* validate(doc) {
     const [version, revision, release] = [
         doc.documentElement.getAttribute("version") ?? "",
         doc.documentElement.getAttribute("revision") ?? "",
@@ -7597,79 +7597,6 @@ async function* validate$1(doc) {
         const childIssues = validator(child);
         yield childIssues;
     }
-}
-
-function isValidationResult(msg) {
-    return (typeof msg !== "string" &&
-        msg.file !== undefined &&
-        msg.valid !== undefined &&
-        msg.loaded === undefined);
-}
-function isValidationError(msg) {
-    return (typeof msg !== "string" &&
-        msg.file !== undefined &&
-        msg.valid === undefined &&
-        msg.loaded === undefined);
-}
-function isLoadSchemaResult(msg) {
-    return (typeof msg !== "string" &&
-        msg.file !== undefined &&
-        msg.valid === undefined &&
-        msg.loaded !== undefined);
-}
-const validators = {};
-async function validate(xml, xsd) {
-    const issues = [];
-    async function getValidator(xsd, xsdName) {
-        // Catch browsers not supporting workers
-        if (!window.Worker)
-            throw new Error("Invalid schema");
-        // Avoid init same XSD multiple times
-        if (validators[xsdName])
-            return validators[xsdName];
-        const worker = new Worker(new URL("./xmlvalidate/worker.js", import.meta.url));
-        async function validate(xml, xmlName, results) {
-            return new Promise((resolve) => {
-                worker.addEventListener("message", (e) => {
-                    if (isValidationResult(e.data) && e.data.file === xmlName) {
-                        resolve(e.data);
-                    }
-                    else if (isValidationError(e.data)) {
-                        const parts = e.data.message.split(": ", 2);
-                        const description = parts[1] ? parts[1] : parts[0];
-                        const qualifiedTag = parts[1] ? ` (${parts[0]})` : "";
-                        results.push({
-                            title: description,
-                            message: `${e.data.file}:${e.data.line} ${e.data.node} ${e.data.part}${qualifiedTag}`,
-                        });
-                    }
-                });
-                worker.postMessage({ content: xml, name: xmlName });
-            });
-        }
-        validators[xsdName] = validate;
-        return new Promise((resolve, reject) => {
-            worker.addEventListener("message", (e) => {
-                if (isLoadSchemaResult(e.data)) {
-                    if (e.data.loaded)
-                        resolve(validate);
-                    else
-                        reject("Schema cannot be loaded");
-                }
-            });
-            worker.postMessage({ content: xsd, name: xsdName });
-        });
-    }
-    try {
-        const validate = await getValidator(xsd.content, xsd.name);
-        const result = await validate(xml.content, xml.name, issues);
-        if (result.valid)
-            issues.push({ title: "Project is schema valid" });
-    }
-    catch {
-        return null;
-    }
-    return issues;
 }
 
 const schemas = {
@@ -16957,7 +16884,139 @@ function getSchema(version, revision, release) {
     return schemaVersion ? schemas[schemaVersion] : null;
 }
 
-/* eslint-disable import/no-extraneous-dependencies */
+function isRecord(value) {
+    return typeof value === 'object' && value !== null;
+}
+function isValidationResult(msg) {
+    if (!isRecord(msg))
+        return false;
+    return 'file' in msg && 'valid' in msg && !('loaded' in msg);
+}
+function isValidationError(msg) {
+    if (!isRecord(msg))
+        return false;
+    return 'file' in msg && !('valid' in msg) && !('loaded' in msg);
+}
+function isLoadSchemaResult(msg) {
+    if (!isRecord(msg))
+        return false;
+    return 'file' in msg && !('valid' in msg) && 'loaded' in msg;
+}
+function withTimeout(promise, timeoutMs, label) {
+    return new Promise((resolve, reject) => {
+        const timeoutHandle = window.setTimeout(() => {
+            reject(new Error(`${label} timed out after ${timeoutMs} ms`));
+        }, timeoutMs);
+        promise
+            .then(value => {
+            window.clearTimeout(timeoutHandle);
+            resolve(value);
+        })
+            .catch(error => {
+            window.clearTimeout(timeoutHandle);
+            reject(error);
+        });
+    });
+}
+function createSchemaWorker() {
+    // Derive the sibling xmlvalidate/ directory from the current module URL at runtime
+    // without using the new URL(path, import.meta.url) pattern that rollup analyzes.
+    const moduleUrl = new URL(import.meta.url);
+    moduleUrl.pathname = moduleUrl.pathname.replace(/[^/]*$/, 'xmlvalidate/');
+    const xmlvalidateBase = moduleUrl.href;
+    const xmlvalidateJsUrl = new URL('xmlvalidate.js', xmlvalidateBase).href;
+    // Use a blob worker so initialization does not depend on how host apps load this plugin.
+    const source = `
+    self.Module = {
+      locateFile: function(path) {
+        return new URL(path, ${JSON.stringify(xmlvalidateBase)}).href;
+      }
+    };
+    importScripts(${JSON.stringify(xmlvalidateJsUrl)});
+    self.onmessage = function(e) {
+      Module.ready.then(function(mod) {
+        if (String(e.data.name).toLowerCase().endsWith('.xsd')) {
+          mod.init(e.data.content, e.data.name);
+        } else {
+          mod.validate(e.data.content, e.data.name);
+        }
+      });
+    };
+  `;
+    const blob = new Blob([source], { type: 'application/javascript' });
+    const workerUrl = URL.createObjectURL(blob);
+    try {
+        return new Worker(workerUrl);
+    }
+    finally {
+        URL.revokeObjectURL(workerUrl);
+    }
+}
+async function validateWithSchemaWorker(xml, xsd) {
+    const issues = [];
+    const worker = createSchemaWorker();
+    const teardown = () => worker.terminate();
+    try {
+        const initPromise = new Promise((resolve, reject) => {
+            const onError = (event) => {
+                // eslint-disable-next-line no-use-before-define
+                worker.removeEventListener('message', onMessage);
+                worker.removeEventListener('error', onError);
+                reject(new Error(event.message || 'Schema worker failed while loading the schema.'));
+            };
+            const onMessage = (event) => {
+                if (isLoadSchemaResult(event.data)) {
+                    worker.removeEventListener('message', onMessage);
+                    worker.removeEventListener('error', onError);
+                    if (event.data.loaded)
+                        resolve();
+                    else
+                        reject(new Error('Schema cannot be loaded'));
+                }
+            };
+            worker.addEventListener('message', onMessage);
+            worker.addEventListener('error', onError);
+            worker.postMessage({ content: xsd.content, name: xsd.name });
+        });
+        await withTimeout(initPromise, 15_000, 'Schema worker initialization');
+        const validatePromise = new Promise((resolve, reject) => {
+            // let onMessage: (event: MessageEvent<unknown>) => void;
+            // let onError: (event: ErrorEvent) => void;
+            const onError = (event) => {
+                // eslint-disable-next-line no-use-before-define
+                worker.removeEventListener('message', onMessage);
+                worker.removeEventListener('error', onError);
+                reject(new Error(event.message || 'Schema worker failed while validating XML.'));
+            };
+            const onMessage = (event) => {
+                if (isValidationResult(event.data) && event.data.file === xml.name) {
+                    worker.removeEventListener('message', onMessage);
+                    worker.removeEventListener('error', onError);
+                    if (event.data.valid)
+                        issues.push({ title: 'Project is schema valid' });
+                    resolve(issues);
+                    return;
+                }
+                if (isValidationError(event.data)) {
+                    const parts = event.data.message.split(': ', 2);
+                    const description = parts[1] ? parts[1] : parts[0];
+                    const qualifiedTag = parts[1] ? ` (${parts[0]})` : '';
+                    issues.push({
+                        title: description,
+                        message: `${event.data.file}:${event.data.line} ${event.data.node} ${event.data.part}${qualifiedTag}`,
+                    });
+                }
+            };
+            worker.addEventListener('message', onMessage);
+            worker.addEventListener('error', onError);
+            worker.postMessage({ content: xml.content, name: xml.name });
+        });
+        return await withTimeout(validatePromise, 20_000, 'Schema validation');
+    }
+    finally {
+        teardown();
+    }
+}
 async function validateSchema(doc, docName) {
     const [version, revision, release] = [
         doc.documentElement.getAttribute('version') ?? '',
@@ -16993,15 +17052,7 @@ async function validateSchema(doc, docName) {
     }
     const schemaName = `SCL${schemaKey}.xsd`;
     try {
-        const result = await validate({ content: docContent, name: docName }, { content: schema, name: schemaName });
-        if (result === null) {
-            return [
-                {
-                    title: 'Schema validator worker failed to initialize',
-                    message: 'The validator returned no result. Ensure xml-schema-validator worker and wasm assets are served correctly.',
-                },
-            ];
-        }
+        const result = await validateWithSchemaWorker({ content: docContent, name: docName }, { content: schema, name: schemaName });
         return result;
     }
     catch (error) {
@@ -17069,7 +17120,7 @@ class OscdMenuValidate extends i$6 {
     async validateTemplates() {
         this.templateIssues.length = 0;
         this.waitForTemplateRun = false;
-        for await (const issue of validate$1(this.doc)) {
+        for await (const issue of validate(this.doc)) {
             this.templateIssues.push(...issue);
             this.requestUpdate('templateIssues');
         }
