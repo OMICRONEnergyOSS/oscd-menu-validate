@@ -16910,7 +16910,7 @@ function isLoadSchemaResult(msg) {
  *   new Worker(new URL("./xmlvalidate/worker.js", import.meta.url))
  *
  * This fails when the plugin is loaded cross-origin (e.g. from GitHub Pages
- * into a shell hosted elsewhere) because the Worker constructor requires the
+ * into a Distro hosted locally or elsewhere) because the Worker constructor requires the
  * script URL to be same-origin with the *page*, not the module.
  *
  * A Blob Worker sidesteps this: the blob URL inherits the page's origin, and
@@ -16975,6 +16975,7 @@ async function validateWithWorker(xml, xsd) {
         // Phase 1 – load the XSD into the WASM validator
         const initPromise = new Promise((resolve, reject) => {
             const onError = (event) => {
+                // eslint-disable-next-line no-use-before-define
                 worker.removeEventListener('message', onMessage);
                 worker.removeEventListener('error', onError);
                 reject(new Error(event.message || 'Schema worker failed while loading the schema.'));
@@ -16997,6 +16998,7 @@ async function validateWithWorker(xml, xsd) {
         // Phase 2 – validate the XML against the loaded XSD
         const validatePromise = new Promise((resolve, reject) => {
             const onError = (event) => {
+                // eslint-disable-next-line no-use-before-define
                 worker.removeEventListener('message', onMessage);
                 worker.removeEventListener('error', onError);
                 reject(new Error(event.message || 'Schema worker failed while validating XML.'));
