@@ -107,7 +107,7 @@ export default class OscdMenuValidate extends LitElement {
     this.schemaIssues = result;
     this.waitForSchemaRun = false;
 
-    if (this.schemaIssues.length) {
+    if (this.schemaIssues.length && !this.dialog.open) {
       this.alertSchemaIssue.labelText =
         this.schemaIssues[this.schemaIssues.length - 1].title;
       this.alertSchemaIssue.show();
@@ -125,7 +125,7 @@ export default class OscdMenuValidate extends LitElement {
       this.requestUpdate('templateIssues');
     }
 
-    if (this.templateIssues.length) {
+    if (this.templateIssues.length && !this.dialog.open) {
       this.alertTemplateIssue.labelText =
         this.templateIssues[this.templateIssues.length - 1].title;
       this.alertTemplateIssue.show();
