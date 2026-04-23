@@ -163,7 +163,7 @@ export default class OscdMenuValidate extends LitElement {
       ...issues.map(
         (issue, i) =>
           html` <abbr title="${`${issue.title}\n${issue.message}`}">
-            <mwc-list-item ?twoline=${!!issue.message} hasMeta>
+            <mwc-list-item ?twoline=${!!issue.message} hasMeta noninteractive>
               <span> ${issue.title}</span>
               <span slot="secondary">${issue.message}</span>
               <mwc-icon-button
