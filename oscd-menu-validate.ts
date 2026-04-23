@@ -88,6 +88,14 @@ export default class OscdMenuValidate extends LitElement {
   @query('.auto.template') toggleAutoValidateTemplate!: Snackbar;
 
   async run() {
+    if (!this.autoValidateSchema) {
+      this.schemaIssues = [];
+      this.waitForSchemaRun = true;
+    }
+    if (!this.autoValidateTemplate) {
+      this.templateIssues = [];
+      this.waitForTemplateRun = true;
+    }
     this.dialog.show();
   }
 
