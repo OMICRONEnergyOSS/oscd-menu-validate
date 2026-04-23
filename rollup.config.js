@@ -17,23 +17,19 @@ export default [{
   plugins: [
     nodeResolve(),
     typescript(),
-    // Exclude xml-schema-validator.js from importMetaAssets so that the worker
-    // URL ./xmlvalidate/worker.js is kept as-is in the bundle. The copy plugin
-    // below deploys the full xmlvalidate/ directory alongside oscd-menu-validate.js,
-    // which is required because worker.js uses importScripts('xmlvalidate.js') —
-    // a relative path that resolves relative to the worker's own location.
-    importMetaAssets({ exclude: ['**/xml-schema-validator.js'] }),
+    importMetaAssets(),
     copy({
       targets: [
-        // Copy the complete xmlvalidate directory so worker.js, xmlvalidate.js
-        // and xmlvalidate.wasm are all served from the same path.
+        // The blob worker loads these via importScripts() at runtime.
+        // Only the JS glue + WASM binary are needed; worker.js is replaced
+        // by the inline blob source in validateSchema.ts.
         {
-          src: 'node_modules/@openenergytools/xml-schema-validator/dist/xmlvalidate',
-          dest: 'dist',
+          src: 'node_modules/@openenergytools/xml-schema-validator/dist/xmlvalidate/xmlvalidate.js',
+          dest: 'dist/xmlvalidate',
         },
         {
-          src: 'node_modules/@openenergytools/scl-template-validator/dist/nsd',
-          dest: 'dist/assets',
+          src: 'node_modules/@openenergytools/xml-schema-validator/dist/xmlvalidate/xmlvalidate.wasm',
+          dest: 'dist/xmlvalidate',
         },
       ],
       hook: 'writeBundle',
@@ -50,26 +46,20 @@ export default [{
       /** Resolve bare module imports */
       nodeResolve(),
 
-      /** Bundle assets references via import.meta.url — processes .nsd file
-       *  references and copies worker.js (from dist/xmlvalidate/) to demo/assets/.
-       *  xmlvalidate.js and xmlvalidate.wasm are copied alongside it by the copy
-       *  plugin below so that worker.js can resolve importScripts('xmlvalidate.js').
-       */
+      /** Bundle assets referenced via import.meta.url (.nsd files etc.) */
       importMetaAssets(),
       copy({
         targets: [
           { src: 'demo/sample.scd', dest: 'dist/demo' },
           { src: 'demo/*.js', dest: 'dist/demo' },
-          // importMetaAssets places worker.js in dist/demo/assets/; copy the
-          // Emscripten support files to the same directory so importScripts
-          // can find them relative to the worker.
+          // WASM validator files for the blob worker (loaded via importScripts)
           {
             src: 'node_modules/@openenergytools/xml-schema-validator/dist/xmlvalidate/xmlvalidate.js',
-            dest: 'dist/demo/assets',
+            dest: 'dist/demo/xmlvalidate',
           },
           {
             src: 'node_modules/@openenergytools/xml-schema-validator/dist/xmlvalidate/xmlvalidate.wasm',
-            dest: 'dist/demo/assets',
+            dest: 'dist/demo/xmlvalidate',
           },
         ],
         verbose: true,

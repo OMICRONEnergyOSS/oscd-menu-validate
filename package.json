@@ -12,10 +12,10 @@
   "scripts": {
     "analyze": "cem analyze --litelement",
     "start": "npm run build && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds --node-resolve\"",
-    "start:bundle": "npm run bundle && concurrently -k -r \"rollup -c rollup.config.js --watch\" \"wds\"",
-    "build": "rimraf dist && tsc",
+    "start:bundle": "npm run bundle && concurrently -k -r \"rollup -c rollup.config.js --watch\" \"wds --open ./dist/demo/ \"",
+    "build": "rimraf dist && tsc && mkdir -p dist/schema/xmlvalidate && cp node_modules/@openenergytools/xml-schema-validator/dist/xmlvalidate/xmlvalidate.js node_modules/@openenergytools/xml-schema-validator/dist/xmlvalidate/xmlvalidate.wasm dist/schema/xmlvalidate/",
     "bundle": "rimraf dist && rollup -c rollup.config.js",
-    "deploy": "npm run bundle && gh-pages --dist 'dist'",
+    "deploy": "npm run bundle && gh-pages -d dist -b deploy",
     "pages": "gh-pages --dist 'dist'",
     "prepublish": "tsc && npm run analyze -- --exclude dist",
     "lint": "eslint --ext .ts,.html . --ignore-path .gitignore && prettier \"**/*.ts\" --check --ignore-path .gitignore",
