@@ -206,11 +206,12 @@ export default class OscdMenuValidate extends LitElement {
         <div style="display: flex; flex-direction: column; flex: auto;">
           <div style="display: flex; flex-direction: row">
             <h3 style="flex:auto">
-              ${`Template issues (${
-                this.waitForTemplateRun
-                  ? 'Run template validator'
-                  : this.templateIssues.length
-              })`}
+              Template Validation
+              ${!this.waitForTemplateRun && this.templateIssues.length > 0
+                ? html`<span class="issue-count"
+                    >${this.templateIssues.length} issues</span
+                  >`
+                : html``}
             </h3>
             <mwc-icon-button-toggle
               class="expand template"
@@ -261,11 +262,12 @@ export default class OscdMenuValidate extends LitElement {
         <div style="display: flex; flex-direction: column; flex: auto;">
           <div style="display: flex; flex-direction: row">
             <h3 style="flex:auto">
-              ${`Schema issues (${
-                this.waitForSchemaRun
-                  ? 'Run schema validator'
-                  : this.schemaIssues.length
-              })`}
+              Schema Validation
+              ${!this.waitForSchemaRun && this.schemaIssues.length > 0
+                ? html`<span class="issue-count"
+                    >${this.schemaIssues.length} issues</span
+                  >`
+                : html``}
             </h3>
             <mwc-icon-button-toggle
               class="expand schema"
@@ -322,7 +324,7 @@ export default class OscdMenuValidate extends LitElement {
         ></mwc-button>
       </mwc-dialog>`;
 
-    return html`<mwc-dialog class="content dialog">
+    return html`<mwc-dialog class="content dialog" heading="Validate SCL">
         ${this.renderSchemaValidator()}${this.renderTemplateValidator()}
         <mwc-button
           label="Close"
@@ -359,6 +361,13 @@ export default class OscdMenuValidate extends LitElement {
 
     .copy-btn[icon='check_circle'] {
       color: #4caf50;
+    }
+
+    .issue-count {
+      font-size: 0.75rem;
+      font-weight: normal;
+      color: #d32f2f;
+      margin-left: 8px;
     }
 
     mwc-list-item {
