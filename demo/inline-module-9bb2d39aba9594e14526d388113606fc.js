@@ -24797,8 +24797,6 @@ async function validateWithWorker(xml, xsd) {
                 if (isValidationResult(event.data) && event.data.file === xml.name) {
                     worker.removeEventListener('message', onMessage);
                     worker.removeEventListener('error', onError);
-                    if (event.data.valid)
-                        issues.push({ title: 'Project is schema valid' });
                     resolve(issues);
                     return;
                 }
@@ -24909,6 +24907,14 @@ class OscdMenuValidate extends i$6 {
             this.autoValidate();
     }
     async run() {
+        if (!this.autoValidateSchema) {
+            this.schemaIssues = [];
+            this.waitForSchemaRun = true;
+        }
+        if (!this.autoValidateTemplate) {
+            this.templateIssues = [];
+            this.waitForTemplateRun = true;
+        }
         this.dialog.show();
     }
     async validateSchema() {
@@ -24917,7 +24923,7 @@ class OscdMenuValidate extends i$6 {
         const result = await validateSchema(this.doc, this.docName);
         this.schemaIssues = result;
         this.waitForSchemaRun = false;
-        if (this.schemaIssues.length) {
+        if (this.schemaIssues.length && !this.dialog.open) {
             this.alertSchemaIssue.labelText =
                 this.schemaIssues[this.schemaIssues.length - 1].title;
             this.alertSchemaIssue.show();
@@ -24931,7 +24937,7 @@ class OscdMenuValidate extends i$6 {
             this.templateIssues.push(...issue);
             this.requestUpdate('templateIssues');
         }
-        if (this.templateIssues.length) {
+        if (this.templateIssues.length && !this.dialog.open) {
             this.alertTemplateIssue.labelText =
                 this.templateIssues[this.templateIssues.length - 1].title;
             this.alertTemplateIssue.show();
@@ -24962,14 +24968,24 @@ class OscdMenuValidate extends i$6 {
             this.requestUpdate();
         }, 2000);
     }
-    renderValidatorsIssues(issues, prefix) {
+    renderValidatorsIssues(issues, prefix, hasRun = false) {
+        if (issues.length === 0 && hasRun)
+            return [
+                b `<li divider padded role="separator"></li>`,
+                b `<mwc-list-item graphic="icon" noninteractive>
+          <mwc-icon slot="graphic" style="color: #4caf50"
+            >check_circle</mwc-icon
+          >
+          <span>No issues found</span>
+        </mwc-list-item>`,
+            ];
         if (issues.length === 0)
             return [b `<li divider padded role="separator"></li>`];
         return [
             b `<li divider padded role="separator"></li>`,
             ...issues.map((issue, i) => b ` <abbr title="${`${issue.title}\n${issue.message}`}">
-            <mwc-list-item ?twoline=${!!issue.message} hasMeta>
-              <span> ${issue.title}</span>
+            <mwc-list-item ?twoline=${!!issue.message} hasMeta noninteractive>
+              <span class="issue-title"> ${issue.title}</span>
               <span slot="secondary">${issue.message}</span>
               <mwc-icon-button
                 class="copy-btn"
@@ -24990,9 +25006,12 @@ class OscdMenuValidate extends i$6 {
         <div style="display: flex; flex-direction: column; flex: auto;">
           <div style="display: flex; flex-direction: row">
             <h3 style="flex:auto">
-              ${`Template issues (${this.waitForTemplateRun
-            ? 'Run template validator'
-            : this.templateIssues.length})`}
+              Template Validation
+              ${!this.waitForTemplateRun && this.templateIssues.length > 0
+            ? b `<span class="issue-count"
+                    >${this.templateIssues.length} issues</span
+                  >`
+            : b ``}
             </h3>
             <mwc-icon-button-toggle
               class="expand template"
@@ -25028,7 +25047,7 @@ class OscdMenuValidate extends i$6 {
             <li divider padded role="separator"></li>
           </mwc-list>`
             : b `<mwc-list id="content" wrapFocus
-            >${this.renderValidatorsIssues(this.templateIssues, 'tpl')}</mwc-list
+            >${this.renderValidatorsIssues(this.templateIssues, 'tpl', !this.waitForTemplateRun)}</mwc-list
           >`}`;
     }
     renderSchemaValidator() {
@@ -25036,9 +25055,12 @@ class OscdMenuValidate extends i$6 {
         <div style="display: flex; flex-direction: column; flex: auto;">
           <div style="display: flex; flex-direction: row">
             <h3 style="flex:auto">
-              ${`Schema issues (${this.waitForSchemaRun
-            ? 'Run schema validator'
-            : this.schemaIssues.length})`}
+              Schema Validation
+              ${!this.waitForSchemaRun && this.schemaIssues.length > 0
+            ? b `<span class="issue-count"
+                    >${this.schemaIssues.length} issues</span
+                  >`
+            : b ``}
             </h3>
             <mwc-icon-button-toggle
               class="expand schema"
@@ -25074,7 +25096,7 @@ class OscdMenuValidate extends i$6 {
             <li divider padded role="separator"></li>
           </mwc-list>`
             : b `<mwc-list id="content" wrapFocus
-            >${this.renderValidatorsIssues(this.schemaIssues, 'sch')}</mwc-list
+            >${this.renderValidatorsIssues(this.schemaIssues, 'sch', !this.waitForSchemaRun)}</mwc-list
           >`}`;
     }
     render() {
@@ -25087,7 +25109,7 @@ class OscdMenuValidate extends i$6 {
           dialogAction="close"
         ></mwc-button>
       </mwc-dialog>`;
-        return b `<mwc-dialog class="content dialog">
+        return b `<mwc-dialog class="content dialog" heading="Validate SCL">
         ${this.renderSchemaValidator()}${this.renderTemplateValidator()}
         <mwc-button
           label="Close"
@@ -25124,6 +25146,32 @@ OscdMenuValidate.styles = i$9 `
 
     .copy-btn[icon='check_circle'] {
       color: #4caf50;
+    }
+
+    .issue-count {
+      font-size: 0.75rem;
+      font-weight: normal;
+      color: #d32f2f;
+      margin-left: 8px;
+    }
+
+    mwc-list-item {
+      --mdc-list-item-graphic-margin: 16px;
+    }
+
+    mwc-list-item[twoline] {
+      height: auto;
+      min-height: 72px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
+    mwc-list-item span[slot='secondary'] {
+      white-space: normal;
+    }
+
+    mwc-list-item .issue-title {
+      white-space: normal;
     }
   `;
 __decorate([
