@@ -1948,7 +1948,7 @@ const iconButtonBaseClass = mixinDelegatesAria(mixinElementInternals(i$f));
  * --composed
  * @fires change {Event} Dispatched when a toggle button toggles --bubbles
  */
-class IconButton extends iconButtonBaseClass {
+class IconButton$1 extends iconButtonBaseClass {
     get name() {
         return this.getAttribute('name') ?? '';
     }
@@ -2148,51 +2148,51 @@ class IconButton extends iconButtonBaseClass {
     }
 }
 (() => {
-    setupFormSubmitter(IconButton);
+    setupFormSubmitter(IconButton$1);
 })();
 /** @nocollapse */
-IconButton.formAssociated = true;
+IconButton$1.formAssociated = true;
 /** @nocollapse */
-IconButton.shadowRootOptions = {
+IconButton$1.shadowRootOptions = {
     mode: 'open',
     delegatesFocus: true,
 };
 __decorate$1([
     n$s({ type: Boolean, reflect: true })
-], IconButton.prototype, "disabled", void 0);
+], IconButton$1.prototype, "disabled", void 0);
 __decorate$1([
     n$s({ type: Boolean, attribute: 'soft-disabled', reflect: true })
-], IconButton.prototype, "softDisabled", void 0);
+], IconButton$1.prototype, "softDisabled", void 0);
 __decorate$1([
     n$s({ type: Boolean, attribute: 'flip-icon-in-rtl' })
-], IconButton.prototype, "flipIconInRtl", void 0);
+], IconButton$1.prototype, "flipIconInRtl", void 0);
 __decorate$1([
     n$s()
-], IconButton.prototype, "href", void 0);
+], IconButton$1.prototype, "href", void 0);
 __decorate$1([
     n$s()
-], IconButton.prototype, "download", void 0);
+], IconButton$1.prototype, "download", void 0);
 __decorate$1([
     n$s()
-], IconButton.prototype, "target", void 0);
+], IconButton$1.prototype, "target", void 0);
 __decorate$1([
     n$s({ attribute: 'aria-label-selected' })
-], IconButton.prototype, "ariaLabelSelected", void 0);
+], IconButton$1.prototype, "ariaLabelSelected", void 0);
 __decorate$1([
     n$s({ type: Boolean })
-], IconButton.prototype, "toggle", void 0);
+], IconButton$1.prototype, "toggle", void 0);
 __decorate$1([
     n$s({ type: Boolean, reflect: true })
-], IconButton.prototype, "selected", void 0);
+], IconButton$1.prototype, "selected", void 0);
 __decorate$1([
     n$s()
-], IconButton.prototype, "type", void 0);
+], IconButton$1.prototype, "type", void 0);
 __decorate$1([
     n$s({ reflect: true })
-], IconButton.prototype, "value", void 0);
+], IconButton$1.prototype, "value", void 0);
 __decorate$1([
     r$d()
-], IconButton.prototype, "flipIcon", void 0);
+], IconButton$1.prototype, "flipIcon", void 0);
 
 /**
  * @license
@@ -2225,7 +2225,7 @@ const styles$k = i$i `:host{display:inline-flex;outline:none;-webkit-tap-highlig
  * @final
  * @suppress {visibility}
  */
-class OscdFilledIconButton extends ScopedElementsMixin(IconButton) {
+class OscdFilledIconButton extends ScopedElementsMixin(IconButton$1) {
     getRenderClasses() {
         return {
             ...super.getRenderClasses(),
@@ -2748,7 +2748,7 @@ const styles$j = i$i `:host{--_disabled-icon-color: var(--md-icon-button-disable
  * @final
  * @suppress {visibility}
  */
-class OscdIconButton extends ScopedElementsMixin(IconButton) {
+class OscdIconButton extends ScopedElementsMixin(IconButton$1) {
     getRenderClasses() {
         return {
             ...super.getRenderClasses(),
@@ -12061,10 +12061,142 @@ Formfield = __decorate([
 
 /**
  * @license
+ * Copyright 2018 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/** @soyCompatible */
+class IconButtonBase extends s$5 {
+    constructor() {
+        super(...arguments);
+        this.disabled = false;
+        this.icon = '';
+        this.shouldRenderRipple = false;
+        this.rippleHandlers = new RippleHandlers(() => {
+            this.shouldRenderRipple = true;
+            return this.ripple;
+        });
+    }
+    /** @soyTemplate */
+    renderRipple() {
+        return this.shouldRenderRipple ? x `
+            <mwc-ripple
+                .disabled="${this.disabled}"
+                unbounded>
+            </mwc-ripple>` :
+            '';
+    }
+    focus() {
+        const buttonElement = this.buttonElement;
+        if (buttonElement) {
+            this.rippleHandlers.startFocus();
+            buttonElement.focus();
+        }
+    }
+    blur() {
+        const buttonElement = this.buttonElement;
+        if (buttonElement) {
+            this.rippleHandlers.endFocus();
+            buttonElement.blur();
+        }
+    }
+    /** @soyTemplate */
+    render() {
+        return x `<button
+        class="mdc-icon-button mdc-icon-button--display-flex"
+        aria-label="${this.ariaLabel || this.icon}"
+        aria-haspopup="${l$8(this.ariaHasPopup)}"
+        ?disabled="${this.disabled}"
+        @focus="${this.handleRippleFocus}"
+        @blur="${this.handleRippleBlur}"
+        @mousedown="${this.handleRippleMouseDown}"
+        @mouseenter="${this.handleRippleMouseEnter}"
+        @mouseleave="${this.handleRippleMouseLeave}"
+        @touchstart="${this.handleRippleTouchStart}"
+        @touchend="${this.handleRippleDeactivate}"
+        @touchcancel="${this.handleRippleDeactivate}"
+    >${this.renderRipple()}
+    ${this.icon ? x `<i class="material-icons">${this.icon}</i>` : ''}
+    <span
+      ><slot></slot
+    ></span>
+  </button>`;
+    }
+    handleRippleMouseDown(event) {
+        const onUp = () => {
+            window.removeEventListener('mouseup', onUp);
+            this.handleRippleDeactivate();
+        };
+        window.addEventListener('mouseup', onUp);
+        this.rippleHandlers.startPress(event);
+    }
+    handleRippleTouchStart(event) {
+        this.rippleHandlers.startPress(event);
+    }
+    handleRippleDeactivate() {
+        this.rippleHandlers.endPress();
+    }
+    handleRippleMouseEnter() {
+        this.rippleHandlers.startHover();
+    }
+    handleRippleMouseLeave() {
+        this.rippleHandlers.endHover();
+    }
+    handleRippleFocus() {
+        this.rippleHandlers.startFocus();
+    }
+    handleRippleBlur() {
+        this.rippleHandlers.endFocus();
+    }
+}
+__decorate([
+    n$h({ type: Boolean, reflect: true })
+], IconButtonBase.prototype, "disabled", void 0);
+__decorate([
+    n$h({ type: String })
+], IconButtonBase.prototype, "icon", void 0);
+__decorate([
+    ariaProperty,
+    n$h({ type: String, attribute: 'aria-label' })
+], IconButtonBase.prototype, "ariaLabel", void 0);
+__decorate([
+    ariaProperty,
+    n$h({ type: String, attribute: 'aria-haspopup' })
+], IconButtonBase.prototype, "ariaHasPopup", void 0);
+__decorate([
+    i$4('button')
+], IconButtonBase.prototype, "buttonElement", void 0);
+__decorate([
+    e$6('mwc-ripple')
+], IconButtonBase.prototype, "ripple", void 0);
+__decorate([
+    t$3()
+], IconButtonBase.prototype, "shouldRenderRipple", void 0);
+__decorate([
+    e$7({ passive: true })
+], IconButtonBase.prototype, "handleRippleMouseDown", null);
+__decorate([
+    e$7({ passive: true })
+], IconButtonBase.prototype, "handleRippleTouchStart", null);
+
+/**
+ * @license
  * Copyright 2021 Google LLC
  * SPDX-LIcense-Identifier: Apache-2.0
  */
 const styles$4 = i$3 `.material-icons{font-family:var(--mdc-icon-font, "Material Icons");font-weight:normal;font-style:normal;font-size:var(--mdc-icon-size, 24px);line-height:1;letter-spacing:normal;text-transform:none;display:inline-block;white-space:nowrap;word-wrap:normal;direction:ltr;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;-moz-osx-font-smoothing:grayscale;font-feature-settings:"liga"}.mdc-icon-button{font-size:24px;width:48px;height:48px;padding:12px}.mdc-icon-button .mdc-icon-button__focus-ring{display:none}.mdc-icon-button.mdc-ripple-upgraded--background-focused .mdc-icon-button__focus-ring,.mdc-icon-button:not(.mdc-ripple-upgraded):focus .mdc-icon-button__focus-ring{display:block;max-height:48px;max-width:48px}@media screen and (forced-colors: active){.mdc-icon-button.mdc-ripple-upgraded--background-focused .mdc-icon-button__focus-ring,.mdc-icon-button:not(.mdc-ripple-upgraded):focus .mdc-icon-button__focus-ring{pointer-events:none;border:2px solid transparent;border-radius:6px;box-sizing:content-box;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);height:100%;width:100%}}@media screen and (forced-colors: active)and (forced-colors: active){.mdc-icon-button.mdc-ripple-upgraded--background-focused .mdc-icon-button__focus-ring,.mdc-icon-button:not(.mdc-ripple-upgraded):focus .mdc-icon-button__focus-ring{border-color:CanvasText}}@media screen and (forced-colors: active){.mdc-icon-button.mdc-ripple-upgraded--background-focused .mdc-icon-button__focus-ring::after,.mdc-icon-button:not(.mdc-ripple-upgraded):focus .mdc-icon-button__focus-ring::after{content:"";border:2px solid transparent;border-radius:8px;display:block;position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);height:calc(100% + 4px);width:calc(100% + 4px)}}@media screen and (forced-colors: active)and (forced-colors: active){.mdc-icon-button.mdc-ripple-upgraded--background-focused .mdc-icon-button__focus-ring::after,.mdc-icon-button:not(.mdc-ripple-upgraded):focus .mdc-icon-button__focus-ring::after{border-color:CanvasText}}.mdc-icon-button.mdc-icon-button--reduced-size .mdc-icon-button__ripple{width:40px;height:40px;margin-top:4px;margin-bottom:4px;margin-right:4px;margin-left:4px}.mdc-icon-button.mdc-icon-button--reduced-size.mdc-ripple-upgraded--background-focused .mdc-icon-button__focus-ring,.mdc-icon-button.mdc-icon-button--reduced-size:not(.mdc-ripple-upgraded):focus .mdc-icon-button__focus-ring{max-height:40px;max-width:40px}.mdc-icon-button .mdc-icon-button__touch{position:absolute;top:50%;height:48px;left:50%;width:48px;transform:translate(-50%, -50%)}.mdc-icon-button:disabled{color:rgba(0, 0, 0, 0.38);color:var(--mdc-theme-text-disabled-on-light, rgba(0, 0, 0, 0.38))}.mdc-icon-button svg,.mdc-icon-button img{width:24px;height:24px}.mdc-icon-button{display:inline-block;position:relative;box-sizing:border-box;border:none;outline:none;background-color:transparent;fill:currentColor;color:inherit;text-decoration:none;cursor:pointer;user-select:none;z-index:0;overflow:visible}.mdc-icon-button .mdc-icon-button__touch{position:absolute;top:50%;height:48px;left:50%;width:48px;transform:translate(-50%, -50%)}.mdc-icon-button:disabled{cursor:default;pointer-events:none}.mdc-icon-button--display-flex{align-items:center;display:inline-flex;justify-content:center}.mdc-icon-button__icon{display:inline-block}.mdc-icon-button__icon.mdc-icon-button__icon--on{display:none}.mdc-icon-button--on .mdc-icon-button__icon{display:none}.mdc-icon-button--on .mdc-icon-button__icon.mdc-icon-button__icon--on{display:inline-block}.mdc-icon-button__link{height:100%;left:0;outline:none;position:absolute;top:0;width:100%}.mdc-icon-button{display:inline-block;position:relative;box-sizing:border-box;border:none;outline:none;background-color:transparent;fill:currentColor;color:inherit;text-decoration:none;cursor:pointer;user-select:none;z-index:0;overflow:visible}.mdc-icon-button .mdc-icon-button__touch{position:absolute;top:50%;height:48px;left:50%;width:48px;transform:translate(-50%, -50%)}.mdc-icon-button:disabled{cursor:default;pointer-events:none}.mdc-icon-button--display-flex{align-items:center;display:inline-flex;justify-content:center}.mdc-icon-button__icon{display:inline-block}.mdc-icon-button__icon.mdc-icon-button__icon--on{display:none}.mdc-icon-button--on .mdc-icon-button__icon{display:none}.mdc-icon-button--on .mdc-icon-button__icon.mdc-icon-button__icon--on{display:inline-block}.mdc-icon-button__link{height:100%;left:0;outline:none;position:absolute;top:0;width:100%}:host{display:inline-block;outline:none}:host([disabled]){pointer-events:none}.mdc-icon-button i,.mdc-icon-button svg,.mdc-icon-button img,.mdc-icon-button ::slotted(*){display:block}:host{--mdc-ripple-color: currentcolor;-webkit-tap-highlight-color:transparent}:host,.mdc-icon-button{vertical-align:top}.mdc-icon-button{width:var(--mdc-icon-button-size, 48px);height:var(--mdc-icon-button-size, 48px);padding:calc( (var(--mdc-icon-button-size, 48px) - var(--mdc-icon-size, 24px)) / 2 )}.mdc-icon-button i,.mdc-icon-button svg,.mdc-icon-button img,.mdc-icon-button ::slotted(*){display:block;width:var(--mdc-icon-size, 24px);height:var(--mdc-icon-size, 24px)}`;
+
+/**
+ * @license
+ * Copyright 2018 Google LLC
+ * SPDX-License-Identifier: Apache-2.0
+ */
+/** @soyCompatible */
+let IconButton = class IconButton extends IconButtonBase {
+};
+IconButton.styles = [styles$4];
+IconButton = __decorate([
+    e$9('mwc-icon-button')
+], IconButton);
 
 /**
  * @license
@@ -15232,7 +15364,7 @@ const tagValidator = {
     BDA: dAValidator,
 };
 
-async function* validate$1(doc) {
+async function* validate(doc) {
     const [version, revision, release] = [
         doc.documentElement.getAttribute("version") ?? "",
         doc.documentElement.getAttribute("revision") ?? "",
@@ -15255,79 +15387,6 @@ async function* validate$1(doc) {
         const childIssues = validator(child);
         yield childIssues;
     }
-}
-
-function isValidationResult(msg) {
-    return (typeof msg !== "string" &&
-        msg.file !== undefined &&
-        msg.valid !== undefined &&
-        msg.loaded === undefined);
-}
-function isValidationError(msg) {
-    return (typeof msg !== "string" &&
-        msg.file !== undefined &&
-        msg.valid === undefined &&
-        msg.loaded === undefined);
-}
-function isLoadSchemaResult(msg) {
-    return (typeof msg !== "string" &&
-        msg.file !== undefined &&
-        msg.valid === undefined &&
-        msg.loaded !== undefined);
-}
-const validators = {};
-async function validate(xml, xsd) {
-    const issues = [];
-    async function getValidator(xsd, xsdName) {
-        // Catch browsers not supporting workers
-        if (!window.Worker)
-            throw new Error("Invalid schema");
-        // Avoid init same XSD multiple times
-        if (validators[xsdName])
-            return validators[xsdName];
-        const worker = new Worker(new URL(new URL(new URL('assets/worker-2cd36d06-b73c3a68.js', import.meta.url).href).href));
-        async function validate(xml, xmlName, results) {
-            return new Promise((resolve) => {
-                worker.addEventListener("message", (e) => {
-                    if (isValidationResult(e.data) && e.data.file === xmlName) {
-                        resolve(e.data);
-                    }
-                    else if (isValidationError(e.data)) {
-                        const parts = e.data.message.split(": ", 2);
-                        const description = parts[1] ? parts[1] : parts[0];
-                        const qualifiedTag = parts[1] ? ` (${parts[0]})` : "";
-                        results.push({
-                            title: description,
-                            message: `${e.data.file}:${e.data.line} ${e.data.node} ${e.data.part}${qualifiedTag}`,
-                        });
-                    }
-                });
-                worker.postMessage({ content: xml, name: xmlName });
-            });
-        }
-        validators[xsdName] = validate;
-        return new Promise((resolve, reject) => {
-            worker.addEventListener("message", (e) => {
-                if (isLoadSchemaResult(e.data)) {
-                    if (e.data.loaded)
-                        resolve(validate);
-                    else
-                        reject("Schema cannot be loaded");
-                }
-            });
-            worker.postMessage({ content: xsd, name: xsdName });
-        });
-    }
-    try {
-        const validate = await getValidator(xsd.content, xsd.name);
-        const result = await validate(xml.content, xml.name, issues);
-        if (result.valid)
-            issues.push({ title: "Project is schema valid" });
-    }
-    catch {
-        return null;
-    }
-    return issues;
 }
 
 const schemas = {
@@ -24607,22 +24666,193 @@ const versionToSchema = {
     '2007B3': '2007B4',
     '2007B4': '2007B4',
 };
+function getSchemaKey(version, revision, release) {
+    return versionToSchema[version + revision + release] ?? null;
+}
 function getSchema(version, revision, release) {
-    const schemaVersion = versionToSchema[version + revision + release];
-    return schemas[schemaVersion ?? '2007B'];
+    const schemaVersion = getSchemaKey(version, revision, release);
+    return schemaVersion ? schemas[schemaVersion] : null;
 }
 
-/* eslint-disable import/no-extraneous-dependencies */
+function isRecord(value) {
+    return typeof value === 'object' && value !== null;
+}
+function isValidationResult(msg) {
+    if (!isRecord(msg))
+        return false;
+    return 'file' in msg && 'valid' in msg && !('loaded' in msg);
+}
+function isValidationError(msg) {
+    if (!isRecord(msg))
+        return false;
+    return 'file' in msg && !('valid' in msg) && !('loaded' in msg);
+}
+function isLoadSchemaResult(msg) {
+    if (!isRecord(msg))
+        return false;
+    return 'file' in msg && !('valid' in msg) && 'loaded' in msg;
+}
+function withTimeout(promise, timeoutMs, label) {
+    return new Promise((resolve, reject) => {
+        const timeoutHandle = window.setTimeout(() => {
+            reject(new Error(`${label} timed out after ${timeoutMs} ms`));
+        }, timeoutMs);
+        promise
+            .then(value => {
+            window.clearTimeout(timeoutHandle);
+            resolve(value);
+        })
+            .catch(error => {
+            window.clearTimeout(timeoutHandle);
+            reject(error);
+        });
+    });
+}
+function createSchemaWorker() {
+    // Derive the sibling xmlvalidate/ directory from the current module URL at runtime
+    // without using the new URL(path, import.meta.url) pattern that rollup analyzes.
+    const moduleUrl = new URL(import.meta.url);
+    moduleUrl.pathname = moduleUrl.pathname.replace(/[^/]*$/, 'xmlvalidate/');
+    const xmlvalidateBase = moduleUrl.href;
+    const xmlvalidateJsUrl = new URL('xmlvalidate.js', xmlvalidateBase).href;
+    // Use a blob worker so initialization does not depend on how host apps load this plugin.
+    const source = `
+    self.Module = {
+      locateFile: function(path) {
+        return new URL(path, ${JSON.stringify(xmlvalidateBase)}).href;
+      }
+    };
+    importScripts(${JSON.stringify(xmlvalidateJsUrl)});
+    self.onmessage = function(e) {
+      Module.ready.then(function(mod) {
+        if (String(e.data.name).toLowerCase().endsWith('.xsd')) {
+          mod.init(e.data.content, e.data.name);
+        } else {
+          mod.validate(e.data.content, e.data.name);
+        }
+      });
+    };
+  `;
+    const blob = new Blob([source], { type: 'application/javascript' });
+    const workerUrl = URL.createObjectURL(blob);
+    try {
+        return new Worker(workerUrl);
+    }
+    finally {
+        URL.revokeObjectURL(workerUrl);
+    }
+}
+async function validateWithSchemaWorker(xml, xsd) {
+    const issues = [];
+    const worker = createSchemaWorker();
+    const teardown = () => worker.terminate();
+    try {
+        const initPromise = new Promise((resolve, reject) => {
+            const onError = (event) => {
+                // eslint-disable-next-line no-use-before-define
+                worker.removeEventListener('message', onMessage);
+                worker.removeEventListener('error', onError);
+                reject(new Error(event.message || 'Schema worker failed while loading the schema.'));
+            };
+            const onMessage = (event) => {
+                if (isLoadSchemaResult(event.data)) {
+                    worker.removeEventListener('message', onMessage);
+                    worker.removeEventListener('error', onError);
+                    if (event.data.loaded)
+                        resolve();
+                    else
+                        reject(new Error('Schema cannot be loaded'));
+                }
+            };
+            worker.addEventListener('message', onMessage);
+            worker.addEventListener('error', onError);
+            worker.postMessage({ content: xsd.content, name: xsd.name });
+        });
+        await withTimeout(initPromise, 15_000, 'Schema worker initialization');
+        const validatePromise = new Promise((resolve, reject) => {
+            // let onMessage: (event: MessageEvent<unknown>) => void;
+            // let onError: (event: ErrorEvent) => void;
+            const onError = (event) => {
+                // eslint-disable-next-line no-use-before-define
+                worker.removeEventListener('message', onMessage);
+                worker.removeEventListener('error', onError);
+                reject(new Error(event.message || 'Schema worker failed while validating XML.'));
+            };
+            const onMessage = (event) => {
+                if (isValidationResult(event.data) && event.data.file === xml.name) {
+                    worker.removeEventListener('message', onMessage);
+                    worker.removeEventListener('error', onError);
+                    if (event.data.valid)
+                        issues.push({ title: 'Project is schema valid' });
+                    resolve(issues);
+                    return;
+                }
+                if (isValidationError(event.data)) {
+                    const parts = event.data.message.split(': ', 2);
+                    const description = parts[1] ? parts[1] : parts[0];
+                    const qualifiedTag = parts[1] ? ` (${parts[0]})` : '';
+                    issues.push({
+                        title: description,
+                        message: `${event.data.file}:${event.data.line} ${event.data.node} ${event.data.part}${qualifiedTag}`,
+                    });
+                }
+            };
+            worker.addEventListener('message', onMessage);
+            worker.addEventListener('error', onError);
+            worker.postMessage({ content: xml.content, name: xml.name });
+        });
+        return await withTimeout(validatePromise, 20_000, 'Schema validation');
+    }
+    finally {
+        teardown();
+    }
+}
 async function validateSchema(doc, docName) {
     const [version, revision, release] = [
         doc.documentElement.getAttribute('version') ?? '',
         doc.documentElement.getAttribute('revision') ?? '',
         doc.documentElement.getAttribute('release') ?? '',
     ];
+    if (typeof Worker === 'undefined') {
+        return [
+            {
+                title: 'Schema validation unavailable in this environment',
+                message: 'Web Worker API is not available.',
+            },
+        ];
+    }
+    const schemaKey = getSchemaKey(version, revision, release);
+    if (!schemaKey) {
+        return [
+            {
+                title: 'Unsupported SCL schema version',
+                message: `No bundled XSD for version='${version}', revision='${revision}', release='${release}'.`,
+            },
+        ];
+    }
     const docContent = new XMLSerializer().serializeToString(doc);
     const schema = getSchema(version, revision, release);
-    const schemaName = `SCL${version}${revision}${release}.xsd`;
-    return validate({ content: docContent, name: docName }, { content: schema, name: schemaName });
+    if (!schema) {
+        return [
+            {
+                title: 'Schema lookup failed',
+                message: `Could not resolve bundled XSD content for '${schemaKey}'.`,
+            },
+        ];
+    }
+    const schemaName = `SCL${schemaKey}.xsd`;
+    try {
+        const result = await validateWithSchemaWorker({ content: docContent, name: docName }, { content: schema, name: schemaName });
+        return result;
+    }
+    catch (error) {
+        return [
+            {
+                title: 'Schema validation threw an exception',
+                message: error instanceof Error ? error.message : String(error),
+            },
+        ];
+    }
 }
 
 /** An editor [[`plugin`]] to configure validators and display their issue centrally */
@@ -24643,10 +24873,13 @@ class OscdMenuValidate extends i$6 {
         this.autoValidateSchema = false;
         /** Whether template validator shall run after each change to the doc */
         this.autoValidateTemplate = false;
+        /** Tracks which issue indices currently show a "copied" checkmark */
+        this.copiedSet = new Set();
     }
     set docName(docName) {
         if (docName === '')
             return;
+        this._docName = docName;
         this.resetValidation();
         this.autoValidate();
     }
@@ -24665,7 +24898,7 @@ class OscdMenuValidate extends i$6 {
         this.schemaIssues.length = 0;
         await this.requestUpdate('schemaIssues');
         const result = await validateSchema(this.doc, this.docName);
-        this.schemaIssues = result || [{ title: 'Invalid Schema!' }];
+        this.schemaIssues = result;
         this.waitForSchemaRun = false;
         if (this.schemaIssues.length) {
             this.alertSchemaIssue.labelText =
@@ -24677,7 +24910,7 @@ class OscdMenuValidate extends i$6 {
     async validateTemplates() {
         this.templateIssues.length = 0;
         this.waitForTemplateRun = false;
-        for await (const issue of validate$1(this.doc)) {
+        for await (const issue of validate(this.doc)) {
             this.templateIssues.push(...issue);
             this.requestUpdate('templateIssues');
         }
@@ -24700,18 +24933,39 @@ class OscdMenuValidate extends i$6 {
         this.waitForSchemaRun = true;
         this.waitForTemplateRun = true;
     }
-    // eslint-disable-next-line class-methods-use-this
-    renderValidatorsIssues(issues) {
+    async copyIssue(key, issue) {
+        const text = issue.message
+            ? `${issue.title}\n${issue.message}`
+            : issue.title;
+        await navigator.clipboard.writeText(text);
+        this.copiedSet.add(key);
+        this.requestUpdate();
+        setTimeout(() => {
+            this.copiedSet.delete(key);
+            this.requestUpdate();
+        }, 2000);
+    }
+    renderValidatorsIssues(issues, prefix) {
         if (issues.length === 0)
             return [b `<li divider padded role="separator"></li>`];
         return [
             b `<li divider padded role="separator"></li>`,
-            ...issues.map(issue => b ` <abbr title="${`${issue.title}\n${issue.message}`}"
-            ><mwc-list-item ?twoline=${!!issue.message}>
+            ...issues.map((issue, i) => b ` <abbr title="${`${issue.title}\n${issue.message}`}">
+            <mwc-list-item ?twoline=${!!issue.message} hasMeta>
               <span> ${issue.title}</span>
               <span slot="secondary">${issue.message}</span>
-            </mwc-list-item></abbr
-          >`),
+              <mwc-icon-button
+                class="copy-btn"
+                slot="meta"
+                icon="${this.copiedSet.has(`${prefix}-${i}`)
+                ? 'check_circle'
+                : 'content_copy'}"
+                @click=${(e) => {
+                e.stopPropagation();
+                this.copyIssue(`${prefix}-${i}`, issue);
+            }}
+              ></mwc-icon-button> </mwc-list-item
+          ></abbr>`),
         ];
     }
     renderTemplateValidator() {
@@ -24757,7 +25011,7 @@ class OscdMenuValidate extends i$6 {
             <li divider padded role="separator"></li>
           </mwc-list>`
             : b `<mwc-list id="content" wrapFocus
-            >${this.renderValidatorsIssues(this.templateIssues)}</mwc-list
+            >${this.renderValidatorsIssues(this.templateIssues, 'tpl')}</mwc-list
           >`}`;
     }
     renderSchemaValidator() {
@@ -24803,7 +25057,7 @@ class OscdMenuValidate extends i$6 {
             <li divider padded role="separator"></li>
           </mwc-list>`
             : b `<mwc-list id="content" wrapFocus
-            >${this.renderValidatorsIssues(this.schemaIssues)}</mwc-list
+            >${this.renderValidatorsIssues(this.schemaIssues, 'sch')}</mwc-list
           >`}`;
     }
     render() {
@@ -24811,7 +25065,7 @@ class OscdMenuValidate extends i$6 {
             return b `<mwc-dialog class="content dialog"
         ><div>No SCL file loaded, yet!</div>
         <mwc-button
-          label="Cancel"
+          label="Close"
           slot="secondaryAction"
           dialogAction="close"
         ></mwc-button>
@@ -24819,7 +25073,7 @@ class OscdMenuValidate extends i$6 {
         return b `<mwc-dialog class="content dialog">
         ${this.renderSchemaValidator()}${this.renderTemplateValidator()}
         <mwc-button
-          label="Cancel"
+          label="Close"
           slot="secondaryAction"
           dialogAction="close"
         ></mwc-button>
@@ -24844,6 +25098,15 @@ OscdMenuValidate.styles = i$9 `
     abbr {
       text-decoration: none;
       border-bottom: none;
+    }
+
+    .copy-btn {
+      --mdc-icon-size: 18px;
+      --mdc-icon-button-size: 32px;
+    }
+
+    .copy-btn[icon='check_circle'] {
+      color: #4caf50;
     }
   `;
 __decorate([
@@ -24873,6 +25136,9 @@ __decorate([
 __decorate([
     r$4()
 ], OscdMenuValidate.prototype, "autoValidateTemplate", void 0);
+__decorate([
+    r$4()
+], OscdMenuValidate.prototype, "copiedSet", void 0);
 __decorate([
     e$a('.content.dialog')
 ], OscdMenuValidate.prototype, "dialog", void 0);

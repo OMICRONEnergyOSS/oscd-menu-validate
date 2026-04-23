@@ -3,6 +3,7 @@ import '@material/mwc-button';
 import '@material/mwc-dialog';
 import '@material/mwc-formfield';
 import '@material/mwc-icon';
+import '@material/mwc-icon-button';
 import '@material/mwc-icon-button-toggle';
 import '@material/mwc-list';
 import '@material/mwc-snackbar';
@@ -34,6 +35,8 @@ export default class OscdMenuValidate extends LitElement {
     autoValidateSchema: boolean;
     /** Whether template validator shall run after each change to the doc */
     autoValidateTemplate: boolean;
+    /** Tracks which issue indices currently show a "copied" checkmark */
+    private copiedSet;
     dialog: Dialog;
     expandTemplate: IconButtonToggle;
     expandSchema: IconButtonToggle;
@@ -48,6 +51,7 @@ export default class OscdMenuValidate extends LitElement {
     private validateTemplates;
     private autoValidate;
     private resetValidation;
+    private copyIssue;
     private renderValidatorsIssues;
     private renderTemplateValidator;
     private renderSchemaValidator;
