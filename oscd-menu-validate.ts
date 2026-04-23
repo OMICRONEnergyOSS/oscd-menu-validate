@@ -164,7 +164,7 @@ export default class OscdMenuValidate extends LitElement {
         (issue, i) =>
           html` <abbr title="${`${issue.title}\n${issue.message}`}">
             <mwc-list-item ?twoline=${!!issue.message} hasMeta noninteractive>
-              <span> ${issue.title}</span>
+              <span class="issue-title"> ${issue.title}</span>
               <span slot="secondary">${issue.message}</span>
               <mwc-icon-button
                 class="copy-btn"
@@ -335,6 +335,25 @@ export default class OscdMenuValidate extends LitElement {
 
     .copy-btn[icon='check_circle'] {
       color: #4caf50;
+    }
+
+    mwc-list-item {
+      --mdc-list-item-graphic-margin: 16px;
+    }
+
+    mwc-list-item[twoline] {
+      height: auto;
+      min-height: 72px;
+      padding-top: 8px;
+      padding-bottom: 8px;
+    }
+
+    mwc-list-item span[slot='secondary'] {
+      white-space: normal;
+    }
+
+    mwc-list-item .issue-title {
+      white-space: normal;
     }
   `;
 }
