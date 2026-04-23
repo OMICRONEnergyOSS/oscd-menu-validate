@@ -154,8 +154,19 @@ export default class OscdMenuValidate extends LitElement {
 
   private renderValidatorsIssues(
     issues: Issue[],
-    prefix: string
+    prefix: string,
+    hasRun: boolean = false
   ): TemplateResult[] {
+    if (issues.length === 0 && hasRun)
+      return [
+        html`<li divider padded role="separator"></li>`,
+        html`<mwc-list-item graphic="icon" noninteractive>
+          <mwc-icon slot="graphic" style="color: #4caf50"
+            >check_circle</mwc-icon
+          >
+          <span>No issues found</span>
+        </mwc-list-item>`,
+      ];
     if (issues.length === 0)
       return [html`<li divider padded role="separator"></li>`];
     return [
@@ -231,7 +242,8 @@ export default class OscdMenuValidate extends LitElement {
         : html`<mwc-list id="content" wrapFocus
             >${this.renderValidatorsIssues(
               this.templateIssues,
-              'tpl'
+              'tpl',
+              !this.waitForTemplateRun
             )}</mwc-list
           >`}`;
   }
@@ -283,7 +295,11 @@ export default class OscdMenuValidate extends LitElement {
             <li divider padded role="separator"></li>
           </mwc-list>`
         : html`<mwc-list id="content" wrapFocus
-            >${this.renderValidatorsIssues(this.schemaIssues, 'sch')}</mwc-list
+            >${this.renderValidatorsIssues(
+              this.schemaIssues,
+              'sch',
+              !this.waitForSchemaRun
+            )}</mwc-list
           >`}`;
   }
 

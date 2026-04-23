@@ -173,8 +173,6 @@ async function validateWithWorker(
         if (isValidationResult(event.data) && event.data.file === xml.name) {
           worker.removeEventListener('message', onMessage);
           worker.removeEventListener('error', onError);
-          if (event.data.valid)
-            issues.push({ title: 'Project is schema valid' });
           resolve(issues);
           return;
         }
