@@ -2,7 +2,22 @@
   "name": "@omicronenergy/oscd-menu-validate",
   "description": "OpenSCD Plugin for Validating SCL files against the SCL Template Validator and XML Schema Validator",
   "license": "Apache-2.0",
-  "author": "oscd-save",
+  "homepage": "https://openscd.org",
+  "keywords": [
+    "OpenSCD",
+    "iec81650"
+  ],
+  "contributors": [
+    "Jakob Vogelsang",
+    "OMICRON Electronics GmbH"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OMICRONEnergyOSS/oscd-menu-validate.git"
+  },
+  "bugs": {
+    "url": "https://github.com/OMICRONEnergyOSS/oscd-menu-validate/issues"
+  },
   "version": "0.0.2",
   "main": "dist/oscd-menu-validate.js",
   "module": "dist/oscd-menu-validate.js",
