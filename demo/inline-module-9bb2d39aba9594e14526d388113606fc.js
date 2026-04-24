@@ -24984,7 +24984,7 @@ class OscdMenuValidate extends i$6 {
         return [
             b `<li divider padded role="separator"></li>`,
             ...issues.map((issue, i) => b ` <abbr title="${`${issue.title}\n${issue.message}`}">
-            <mwc-list-item ?twoline=${!!issue.message} hasMeta noninteractive>
+            <mwc-list-item ?twoline=${!!issue.message} hasMeta>
               <span class="issue-title"> ${issue.title}</span>
               <span slot="secondary">${issue.message}</span>
               <mwc-icon-button
@@ -25157,6 +25157,8 @@ OscdMenuValidate.styles = i$9 `
 
     mwc-list-item {
       --mdc-list-item-graphic-margin: 16px;
+      cursor: default;
+      --mdc-ripple-color: transparent;
     }
 
     mwc-list-item[twoline] {
