@@ -3,7 +3,7 @@
   "description": "OpenSCD Plugin for Validating SCL files against the SCL Template Validator and XML Schema Validator",
   "license": "Apache-2.0",
   "author": "oscd-save",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/oscd-menu-validate.js",
   "module": "dist/oscd-menu-validate.js",
   "exports": {
