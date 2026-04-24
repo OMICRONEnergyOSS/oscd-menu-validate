@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.2](https://github.com/OMICRONEnergyOSS/oscd-menu-validate/compare/oscd-menu-validate-v0.0.1...oscd-menu-validate-v0.0.2) (2026-04-24)
+
+
+### Bug Fixes
+
+* non-interactive list items prevent button actions firing ([c853b62](https://github.com/OMICRONEnergyOSS/oscd-menu-validate/commit/c853b621a53381ba7d8f090a6fda094afd8e72ae))
+
 ## 0.0.1 (2026-04-23)
 
 
